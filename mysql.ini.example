@@ -1,0 +1,10 @@
+# MySQL Configuration File
+ip=127.0.0.1
+port=3306
+username=root
+password=your_password
+dbname=your_database_name
+initSize=10
+maxSize=1024
+maxIdleTime=60
+connectionTimeOut=100

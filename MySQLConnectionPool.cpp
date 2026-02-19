@@ -1,51 +1,57 @@
 ﻿#include "MySQLConnectionPool.h"
-#include "public.h"
 #include "connection.h"
-#include <thread>
-#include <functional>
+#include "public.h"
 #include <chrono>
+#include <functional>
 #include <memory>
+#include <thread>
 
-#include <fstream>   // 用C++的ifstream替代C的fopen，更安全
-#include <sstream>
 #include <algorithm> // 用于去除空格
 #include <cctype>    // isspace
+#include <fstream>   // 用C++的ifstream替代C的fopen，更安全
+#include <sstream>
 
-//获取连接池对象实例
-ConnectionPool* ConnectionPool::getConnectionPool()
+// 获取连接池对象实例
+ConnectionPool *ConnectionPool::getConnectionPool()
 {
     static ConnectionPool pool;
     return &pool;
 }
 
 // 辅助函数：去除字符串首尾空格/制表符（必须）
-static string trim(const string& str) {
+static string trim(const string &str)
+{
     size_t start = str.find_first_not_of(" \t");
     size_t end = str.find_last_not_of(" \t");
     return (start == string::npos || end == string::npos) ? "" : str.substr(start, end - start + 1);
 }
 // ConnectionPool类的成员函数：加载MySQL.ini配置文件
-bool ConnectionPool::loadConfigFile() {
+bool ConnectionPool::loadConfigFile()
+{
     // 1. 打开MySQL.ini配置文件（当前程序运行目录下）
     ifstream configFile("MySQL.ini");
-    if (!configFile.is_open()) {
+    if (!configFile.is_open())
+    {
         cerr << "[错误] 无法打开配置文件 MySQL.ini，请检查文件是否存在！" << endl;
         return false;
     }
 
     string line;
     // 2. 逐行读取并解析配置
-    while (getline(configFile, line)) {
+    while (getline(configFile, line))
+    {
         line = trim(line); // 去除当前行首尾空格
 
         // 跳过空行和注释行（#开头）
-        if (line.empty() || line[0] == '#') {
+        if (line.empty() || line[0] == '#')
+        {
             continue;
         }
 
         // 3. 分割key和value（按=分隔）
         size_t equalPos = line.find('=');
-        if (equalPos == string::npos) {
+        if (equalPos == string::npos)
+        {
             cerr << "[错误] 配置行格式错误：" << line << "（缺少=分隔符）" << endl;
             configFile.close();
             return false;
@@ -56,24 +62,37 @@ bool ConnectionPool::loadConfigFile() {
         string value = trim(line.substr(equalPos + 1));
 
         // 4. 解析配置项到成员变量
-        try {
-            if (key == "ip") _ip = value;
-            else if (key == "port") _port = stoi(value);
-            else if (key == "username") _username = value;
-            else if (key == "password") _password = value;
-            else if (key == "dbname") _dbname = value;
-            else if (key == "initSize") _initSize = stoi(value);
-            else if (key == "maxSize") _maxSize = stoi(value);
-            else if (key == "maxIdleTime") _maxIdleTime = stoi(value);
-            else if (key == "connectionTimeOut") _connectionTimeOut = stoi(value);
-            else cerr << "[警告] 未知配置项：" << key << "=" << value << endl;
+        try
+        {
+            if (key == "ip")
+                _ip = value;
+            else if (key == "port")
+                _port = stoi(value);
+            else if (key == "username")
+                _username = value;
+            else if (key == "password")
+                _password = value;
+            else if (key == "dbname")
+                _dbname = value;
+            else if (key == "initSize")
+                _initSize = stoi(value);
+            else if (key == "maxSize")
+                _maxSize = stoi(value);
+            else if (key == "maxIdleTime")
+                _maxIdleTime = stoi(value);
+            else if (key == "connectionTimeOut")
+                _connectionTimeOut = stoi(value);
+            else
+                cerr << "[警告] 未知配置项：" << key << "=" << value << endl;
         }
-        catch (const invalid_argument&) {
+        catch (const invalid_argument &)
+        {
             cerr << "[错误] 配置项 " << key << " 的值 " << value << " 不是有效整数！" << endl;
             configFile.close();
             return false;
         }
-        catch (const out_of_range&) {
+        catch (const out_of_range &)
+        {
             cerr << "[错误] 配置项 " << key << " 的值 " << value << " 超出整数范围！" << endl;
             configFile.close();
             return false;
@@ -82,7 +101,8 @@ bool ConnectionPool::loadConfigFile() {
 
     // 5. 关闭文件并校验核心配置
     configFile.close();
-    if (_ip.empty() || _username.empty() || _password.empty() || _dbname.empty()) {
+    if (_ip.empty() || _username.empty() || _password.empty() || _dbname.empty())
+    {
         cerr << "[错误] 核心配置项（ip/username/password/dbname）不能为空！" << endl;
         return false;
     }
@@ -101,19 +121,20 @@ bool ConnectionPool::loadConfigFile() {
     return true;
 }
 
-//连接池构造函数
-ConnectionPool::ConnectionPool() : _connectionCount(0)
+// 连接池构造函数
+ConnectionPool::ConnectionPool()
+    : _connectionCount(0)
 {
-    //加载配置文件
+    // 加载配置文件
     if (!loadConfigFile())
     {
         return;
     }
 
-    //创建初始数量的连接
+    // 创建初始数量的连接
     for (int i = 0; i < _initSize; ++i)
     {
-        Connection* conn = new Connection();
+        Connection *conn = new Connection();
         if (!conn->connect(_ip, _port, _username, _password, _dbname))
         {
             LOG("创建连接失败");
@@ -123,12 +144,16 @@ ConnectionPool::ConnectionPool() : _connectionCount(0)
         conn->refreshTime();
         _connectionCount++;
     }
-    //创建生产者线程
+    // 创建生产者线程
     thread produce(std::bind(&ConnectionPool::produceConnectionTask, this));
     produce.detach();
+
+    // 启动一个新的线程，作为连接的扫描和回收线程
+    thread scanner(std::bind(&ConnectionPool::recycleConnection, this));
+    scanner.detach();
 }
 
-//在新线程中，负责生产新连接
+// 在新线程中，负责生产新连接
 void ConnectionPool::produceConnectionTask()
 {
     while (true)
@@ -142,7 +167,7 @@ void ConnectionPool::produceConnectionTask()
 
         if (_connectionCount <= _maxSize)
         {
-            Connection* p = new Connection();
+            Connection *p = new Connection();
             if (!p->connect(_ip, _port, _username, _password, _dbname))
             {
                 delete p;
@@ -154,12 +179,12 @@ void ConnectionPool::produceConnectionTask()
             _connectionCount++;
         }
 
-        //通知消费者线程可以消费了
+        // 通知消费者线程可以消费了
         cv.notify_all();
     }
 }
 
-//给外界提供获取连接池空闲连接的接口,消费者线程
+// 给外界提供获取连接池空闲连接的接口,消费者线程
 shared_ptr<Connection> ConnectionPool::getConnection()
 {
     while (true)
@@ -176,12 +201,15 @@ shared_ptr<Connection> ConnectionPool::getConnection()
                 }
             }
         }
-        //目的是不要让客户端使用完连接后直接析构，让其放回连接池
-        std::shared_ptr<Connection> sp(_ConnectionPoolQueue.front(), [this](Connection* pcon) {
-            //必须加锁，此时锁已经被释放了，要重新获取锁
-            std::unique_lock<std::mutex> lock(_queueMutex);
-            _ConnectionPoolQueue.push(pcon);
-            pcon->refreshTime();
+        // 目的是不要让客户端使用完连接后直接析构，让其放回连接池
+        std::shared_ptr<Connection> sp(
+            _ConnectionPoolQueue.front(),
+            [this](Connection *pcon)
+            {
+                // 必须加锁，此时锁已经被释放了，要重新获取锁
+                std::unique_lock<std::mutex> lock(_queueMutex);
+                _ConnectionPoolQueue.push(pcon);
+                pcon->refreshTime();
             });
 
         _ConnectionPoolQueue.pop();
@@ -191,7 +219,7 @@ shared_ptr<Connection> ConnectionPool::getConnection()
     }
 }
 
-//回收连接池中超过最大空闲时间的连接
+// 回收连接池中超过最大空闲时间的连接
 void ConnectionPool::recycleConnection()
 {
     while (true)
@@ -201,7 +229,7 @@ void ConnectionPool::recycleConnection()
         std::unique_lock<std::mutex> lock(_queueMutex);
         while (_connectionCount > _initSize)
         {
-            Connection* p = _ConnectionPoolQueue.front();
+            Connection *p = _ConnectionPoolQueue.front();
             if (p->getIdelTime() >= _maxIdleTime * 1000)
             {
                 _ConnectionPoolQueue.pop();
@@ -215,4 +243,3 @@ void ConnectionPool::recycleConnection()
         }
     }
 }
-

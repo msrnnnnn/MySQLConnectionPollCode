@@ -1,0 +1,39 @@
+# Visual Studio
+.vs/
+out/
+build/
+x64/
+x86/
+Debug/
+Release/
+*.user
+*.suo
+*.db
+*.opensdf
+*.sdf
+*.ipch
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.log
+*.tlog
+*.idb
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cbp
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private Configuration (Contains Passwords!)
+MySQL.ini
