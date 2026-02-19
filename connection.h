@@ -5,8 +5,10 @@
 #include <string>
 
 /*
- * 实现MySQL数据库的操作
+ * @File: connection.h
+ * @Brief: MySQL连接的封装声明
  */
+
 class Connection
 {
 public:

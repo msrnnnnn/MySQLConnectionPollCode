@@ -4,6 +4,8 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+> **Note**: 本项目已进行全面优化，支持跨平台编译（Linux/Windows），并提供详细的性能测试报告。
+
 ## 📖 项目简介 (Introduction)
 
 这是一个基于 **C++11** 标准开发的高性能 MySQL 数据库连接池项目。

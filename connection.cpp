@@ -3,6 +3,11 @@
 
 using namespace std;
 
+/*
+ * @File: connection.cpp
+ * @Brief: MySQL连接的封装实现
+ */
+
 Connection::Connection()
 {
     // 初始化数据库连接

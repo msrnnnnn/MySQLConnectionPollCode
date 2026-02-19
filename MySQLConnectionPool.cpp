@@ -11,6 +11,13 @@
 #include <fstream>   // 用C++的ifstream替代C的fopen，更安全
 #include <sstream>
 
+using namespace std;
+
+/*
+ * @File: MySQLConnectionPool.cpp
+ * @Brief: MySQL连接池的实现
+ */
+
 // 获取连接池对象实例
 ConnectionPool *ConnectionPool::getConnectionPool()
 {
