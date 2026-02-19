@@ -1,10 +1,15 @@
 # @File: CMakeLists.txt
 cmake_minimum_required(VERSION 3.10)
-project(MySQLConnectionPool VERSION 1.0.0 LANGUAGES CXX)
+project(HighPerf-MySQL-Pool VERSION 1.0.0 LANGUAGES CXX)
 
 # 使用 C++11 标准
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 解决 MSVC 中文乱码问题
+if (MSVC)
+    add_compile_options(/utf-8 /FS)
+endif()
 
 # 查找线程库 (C++11 线程需要)
 find_package(Threads REQUIRED)

@@ -1,4 +1,6 @@
-# High Performance MySQL Connection Pool (基于C++11的高性能MySQL连接池)
+# HighPerf-MySQL-Pool
+
+高性能跨平台 MySQL 连接池（High Performance Cross-Platform MySQL Connection Pool）
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey.svg)
