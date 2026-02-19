@@ -1,6 +1,8 @@
 #include "connection.h"
 #include "public.h"
 
+using namespace std;
+
 Connection::Connection()
 {
     // 初始化数据库连接

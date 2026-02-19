@@ -1,9 +1,8 @@
 #pragma once
 #include "public.h"
+#include <ctime>
 #include <mysql.h>
 #include <string>
-#include <ctime>
-using namespace std;
 
 /*
  * 实现MySQL数据库的操作
@@ -17,22 +16,32 @@ public:
     // 释放数据库连接资源
     ~Connection();
 
+    // 禁用拷贝构造和拷贝赋值，避免浅拷贝导致MYSQL指针重复释放
+    Connection(const Connection &) = delete;
+    Connection &operator=(const Connection &) = delete;
+
     // 连接数据库
-    bool connect(string ip, unsigned short port, string username, string password, string dbname);
+    bool connect(std::string ip, unsigned short port, std::string username, std::string password, std::string dbname);
 
     // 更新操作 insert、delete、update
-    bool update(string sql);
+    bool update(std::string sql);
 
     // 查询操作 select
-    MYSQL_RES* query(string sql);
+    MYSQL_RES *query(std::string sql);
 
     // 刷新当前空闲时间点
-    void refreshTime() { _idelTime = clock(); }
+    void refreshTime()
+    {
+        _idelTime = clock();
+    }
 
     // 获取连接空闲时长
-    time_t getIdelTime() { return clock() - _idelTime; }
+    clock_t getIdelTime()
+    {
+        return clock() - _idelTime;
+    }
 
 private:
-    MYSQL* _conn; // 表示和MySQL Server的一条连接
-    time_t _idelTime; // 记录空闲时间
+    MYSQL *_conn;      // 表示和MySQL Server的一条连接
+    clock_t _idelTime; // 记录空闲时间
 };
