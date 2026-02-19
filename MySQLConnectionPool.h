@@ -6,40 +6,45 @@
 #include <atomic>
 #include <memory>
 #include <condition_variable>
-//ÊµÏÖµÄÊÇMySqlÁ¬½Ó³Ø¹¦ÄÜ
+
+/*
+ * å®ç°å•ä¾‹æ¨¡å¼çš„MySQLè¿æ¥æ± ç®¡ç†
+ */
 class ConnectionPool
 {
 public:
-	//»ñÈ¡Á¬½Ó³Ø¶ÔÏóÊµÀı
-	static ConnectionPool* getConnectionPool();
-	//¸øÍâ½çÌá¹©»ñÈ¡Á¬½Ó³Ø¿ÕÏĞÁ¬½ÓµÄ½Ó¿Ú
-	shared_ptr<Connection> getConnection();
+    // è·å–è¿æ¥æ± å¯¹è±¡å®ä¾‹
+    static ConnectionPool* getConnectionPool();
+    // ç»™å¤–éƒ¨æä¾›è·å–è¿æ¥æ± ä¸­è¿æ¥çš„æ¥å£
+    shared_ptr<Connection> getConnection();
+
 private:
-	ConnectionPool();
-	ConnectionPool(const ConnectionPool&) = delete;
-	ConnectionPool& operator=(const ConnectionPool&) = delete;
+    // å•ä¾‹æ¨¡å¼æ„é€ å‡½æ•°ç§æœ‰åŒ–
+    ConnectionPool();
+    ConnectionPool(const ConnectionPool&) = delete;
+    ConnectionPool& operator=(const ConnectionPool&) = delete;
 
-	//´ÓÅäÖÃÎÄ¼şÖĞ¼ÓÔØÅäÖÃÏî
-	bool loadConfigFile();
+    // åŠ è½½é…ç½®æ–‡ä»¶
+    bool loadConfigFile();
 
-	//ÔÚĞÂÏß³ÌÖĞ£¬¸ºÔğÉú²úĞÂÁ¬½Ó
-	void produceConnectionTask();
+    // è¿è¡Œåœ¨ç‹¬ç«‹çš„çº¿ç¨‹ä¸­ï¼Œè´Ÿè´£ç”Ÿäº§æ–°è¿æ¥
+    void produceConnectionTask();
 
-	//»ØÊÕÁ¬½Ó³ØÖĞ³¬¹ı×î´ó¿ÕÏĞÊ±¼äµÄÁ¬½Ó
-	void recycleConnection();
+    // æ‰«æè¶…è¿‡maxIdleTimeæ—¶é—´çš„ç©ºé—²è¿æ¥ï¼Œè¿›è¡Œå›æ”¶
+    void recycleConnection();
 
-	string _ip;//MySQLµÄipµØÖ·
-	unsigned short _port;//MySQLµÄ¶Ë¿ÚºÅ
-	string _username;//MySQLÓÃ»§Ãû
-	string _password;//MySQLÃÜÂë
-	string _dbname;//MySQLÊı¾İ¿âÃû³Æ
-	int _initSize;//Á¬½Ó³Ø³õÊ¼Á¬½ÓÁ¿
-	int _maxSize;//Á¬½Ó³Ø×î´óÁ¬½ÓÁ¿
-	int _maxIdleTime;//Á¬½Ó³ØÖĞ¿ÕÏĞÁ¬½ÓÊ±¼ä
-	int _connectionTimeOut;//Á¬½Ó³Ø»ñÈ¡Á¬½ÓµÄ³¬Ê±Ê±¼ä
+    string _ip;             // MySQLçš„ipåœ°å€
+    unsigned short _port;   // MySQLçš„ç«¯å£å·
+    string _username;       // MySQLç”¨æˆ·å
+    string _password;       // MySQLå¯†ç 
+    string _dbname;         // MySQLæ•°æ®åº“åç§°
+    int _initSize;          // è¿æ¥æ± çš„åˆå§‹è¿æ¥é‡
+    int _maxSize;           // è¿æ¥æ± çš„æœ€å¤§è¿æ¥é‡
+    int _maxIdleTime;       // è¿æ¥æ± æœ€å¤§ç©ºé—²æ—¶é—´
+    int _connectionTimeOut; // è¿æ¥æ± è·å–è¿æ¥çš„è¶…æ—¶æ—¶é—´
 
-	std::queue<Connection*> _ConnectionPoolQueue;//Á¬½Ó³ØÁ¬½Ó¶ÓÁĞ
-	std::mutex _queueMutex;//Î¬»¤¶ÓÁĞÏß³Ì°²È«µÄ»¥³âËø
-	atomic_int _connectionCount;//¼ÇÂ¼´´½¨Á¬½ÓµÄ×ÜÊıÁ¿
-	std::condition_variable cv;
+    std::queue<Connection*> _ConnectionPoolQueue; // å­˜å‚¨mysqlè¿æ¥çš„é˜Ÿåˆ—
+    std::mutex _queueMutex; // ç»´æŠ¤è¿æ¥é˜Ÿåˆ—çš„çº¿ç¨‹å®‰å…¨äº’æ–¥é”
+    atomic_int _connectionCount; // è®°å½•è¿æ¥æ‰€åˆ›å»ºçš„connectionè¿æ¥çš„æ€»æ•°é‡
+    std::condition_variable cv; // è®¾ç½®æ¡ä»¶å˜é‡ï¼Œç”¨äºè¿æ¥ç”Ÿäº§çº¿ç¨‹å’Œæ¶ˆè´¹çº¿ç¨‹çš„é€šä¿¡
 };

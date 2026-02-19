@@ -4,32 +4,35 @@
 #include <string>
 #include <ctime>
 using namespace std;
-//ÊµÏÖÁ¬½ÓÊı¾İ¿âµÄ²Ù×÷
 
+/*
+ * å®ç°MySQLæ•°æ®åº“çš„æ“ä½œ
+ */
 class Connection
 {
 public:
-    // ³õÊ¼»¯Êı¾İ¿âÁ¬½Ó
+    // åˆå§‹åŒ–æ•°æ®åº“è¿æ¥
     Connection();
 
-    // ÊÍ·ÅÊı¾İ¿âÁ¬½Ó×ÊÔ´
+    // é‡Šæ”¾æ•°æ®åº“è¿æ¥èµ„æº
     ~Connection();
 
-    // Á¬½ÓÊı¾İ¿â
-    bool connect(string ip, unsigned short port, string username,string password,string dbname);
+    // è¿æ¥æ•°æ®åº“
+    bool connect(string ip, unsigned short port, string username, string password, string dbname);
 
-    // ¸üĞÂ²Ù×÷ insert¡¢delete¡¢update
+    // æ›´æ–°æ“ä½œ insertã€deleteã€update
     bool update(string sql);
 
-    // ²éÑ¯²Ù×÷ select
+    // æŸ¥è¯¢æ“ä½œ select
     MYSQL_RES* query(string sql);
 
-    //Ë¢ĞÂµ±Ç°Ê±¼ä
-    void refreshTime() { _idelTime = clock(); };
+    // åˆ·æ–°å½“å‰ç©ºé—²æ—¶é—´ç‚¹
+    void refreshTime() { _idelTime = clock(); }
 
-    //µÃµ½¿ÕÏĞÊ±¼ä
-    time_t getIdelTime() { return clock() - _idelTime; };
+    // è·å–è¿æ¥ç©ºé—²æ—¶é•¿
+    time_t getIdelTime() { return clock() - _idelTime; }
+
 private:
-    MYSQL* _conn; // ±íÊ¾ºÍMySQL ServerµÄÒ»ÌõÁ¬½Ó
-    time_t _idelTime;
+    MYSQL* _conn; // è¡¨ç¤ºå’ŒMySQL Serverçš„ä¸€æ¡è¿æ¥
+    time_t _idelTime; // è®°å½•ç©ºé—²æ—¶é—´
 };
